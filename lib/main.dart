@@ -2,7 +2,9 @@ import 'add_reminder_screen.dart';
 import 'notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:timezone/data/latest.dart' as tz;
 import 'view_reminder.dart';
 
@@ -30,12 +32,36 @@ class MedicationReminderScreen extends StatelessWidget {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final LocalStorage storage = new LocalStorage('reminder.json');
+  final FlutterTts tts = FlutterTts();
+  stt.SpeechToText speech = stt.SpeechToText();
+  var pressed_1 = false;
+  var pressed_2 = false;
+  var isListening = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Medication Reminder'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (isListening) {
+            speech.stop();
+            isListening = false;
+            return;
+          }
+          bool available = await speech.initialize();
+          if (available) {
+            isListening = true;
+            speech.listen(onResult: (result) {
+              print('Result: ${result.recognizedWords}');
+            });
+          } else {
+            print('The user has denied the use of speech recognition.');
+          }
+        },
+        child: Icon(Icons.mic),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -45,19 +71,28 @@ class MedicationReminderScreen extends StatelessWidget {
             child: Container(
               color: Colors.green,
               child: TextButton(
-                onPressed: () {
-                  Map<String, dynamic> currentReminder = {
-                    'medicineName': '',
-                    'Time': ''
-                  };
-                  storage.setItem('currentReminder', currentReminder);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddReminderScreen(),
-                    ),
-                  );
+                onPressed: () async {
+                  pressed_2 = false;
+                  if (!pressed_1) {
+                    pressed_1 = true;
+                    tts.setLanguage('en');
+                    tts.setSpeechRate(0.4);
+                    await tts.awaitSpeakCompletion(true);
+                    await tts.speak('Add New Reminder');
+                  } else {
+                    pressed_1 = false;
+                    Map<String, dynamic> currentReminder = {
+                      'medicineName': '',
+                      'Time': ''
+                    };
+                    storage.setItem('currentReminder', currentReminder);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddReminderScreen(),
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   'Add New Reminder',
@@ -74,16 +109,25 @@ class MedicationReminderScreen extends StatelessWidget {
             child: Container(
               color: Colors.red,
               child: TextButton(
-                onPressed: () {
-                  NotificationService()
-                      .showNotification(1, "TITLE", "lmao test");
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ViewRemindersScreen(),
-                    ),
-                  );
+                onPressed: () async {
+                  pressed_1 = false;
+                  if (!pressed_2) {
+                    pressed_2 = true;
+                    tts.setLanguage('en');
+                    tts.setSpeechRate(0.4);
+                    await tts.awaitSpeakCompletion(true);
+                    await tts.speak('View Existing Reminders');
+                  } else {
+                    NotificationService()
+                        .showNotification(1, "TITLE", "DESCRIPTION");
+                    pressed_2 = false;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewRemindersScreen(),
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   'View Existing Reminders',

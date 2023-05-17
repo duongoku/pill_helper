@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:localstorage/localstorage.dart';
 
 class ViewRemindersScreen extends StatelessWidget {
@@ -27,11 +28,13 @@ class ViewRemindersScreen extends StatelessWidget {
             children: [
               if (reminder1 != null)
                 Expanded(
-                  child: ReminderCard(reminder: reminder1),
+                  child:
+                      ReminderCard(reminder: reminder1, reminders: reminders),
                 ),
               if (reminder2 != null)
                 Expanded(
-                  child: ReminderCard(reminder: reminder2),
+                  child:
+                      ReminderCard(reminder: reminder2, reminders: reminders),
                 ),
             ],
           );
@@ -42,9 +45,13 @@ class ViewRemindersScreen extends StatelessWidget {
 }
 
 class ReminderCard extends StatelessWidget {
+  final LocalStorage storage = new LocalStorage('reminders.json');
   final Map<String, dynamic> reminder;
+  final List<dynamic> reminders;
+  final FlutterTts tts = FlutterTts();
+  var pressed_1 = false;
 
-  ReminderCard({required this.reminder});
+  ReminderCard({required this.reminder, required this.reminders});
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +64,7 @@ class ReminderCard extends StatelessWidget {
             child: Container(
               color: Colors.green,
               child: TextButton(
-                onPressed: () {
-                  // TODO
-                },
+                onPressed: null,
                 child: Text(
                   'Pill: ' +
                       reminder['medicineName'] +
@@ -79,7 +84,16 @@ class ReminderCard extends StatelessWidget {
               color: Colors.red,
               child: TextButton(
                 onPressed: () {
-                  // TODO
+                  if (!pressed_1) {
+                    pressed_1 = true;
+                    tts.setLanguage('en');
+                    tts.setSpeechRate(0.4);
+                    tts.speak('Delete ' + reminder['medicineName'] + '?');
+                  } else {
+                    reminders.remove(reminder);
+                    storage.setItem('reminders', reminders);
+                    pressed_1 = false;
+                  }
                 },
                 child: Text(
                   'Delete',
