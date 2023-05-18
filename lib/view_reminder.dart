@@ -12,7 +12,29 @@ class ViewRemindersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> reminders = storage.getItem('reminders') ?? [];
+    List<dynamic> reminders = storage.getItem('reminders') ??
+        [
+          {
+            'medicineName': 'Panadol',
+            'Time': '6:01',
+          },
+          {
+            'medicineName': 'Paracetamol',
+            'Time': '8:12',
+          },
+          {
+            'medicineName': 'Tiffy',
+            'Time': '12:31',
+          },
+          {
+            'medicineName': 'Decolgen',
+            'Time': '15:11',
+          },
+          {
+            'medicineName': 'Vitamin B1',
+            'Time': '21:03',
+          }
+        ];
 
     return Scaffold(
       appBar: AppBar(
