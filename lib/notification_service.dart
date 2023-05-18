@@ -27,8 +27,8 @@ class NotificationService {
       int id, String title, String body, String time) async {
     // Time format is "HH:mm", show notification daily
     List<String> parts = time.split(":");
-    int? hour = int.tryParse(parts[0]);
-    int? minute = int.tryParse(parts[1]);
+    int? hour = parts.isNotEmpty ? int.tryParse(parts[0]) : 0;
+    int? minute = parts.length > 1 ? int.tryParse(parts[1]) : 0;
     var now = DateTime.now();
     var scheduledTime = DateTime(
       now.year,
