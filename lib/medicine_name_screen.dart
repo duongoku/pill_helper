@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class MedicineNameScreen extends StatelessWidget {
   final LocalStorage storage = new LocalStorage('reminders.json');
   final textController = TextEditingController();
   final FlutterTts tts = FlutterTts();
+  stt.SpeechToText speech = stt.SpeechToText();
   var pressed_1 = false;
+  var isListening = false;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +24,25 @@ class MedicineNameScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Medicine Name'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (isListening) {
+            speech.stop();
+            isListening = false;
+            return;
+          }
+          bool available = await speech.initialize();
+          if (available) {
+            isListening = true;
+            speech.listen(onResult: (result) {
+              print('Result: ${result.recognizedWords}');
+            });
+          } else {
+            print('The user has denied the use of speech recognition.');
+          }
+        },
+        child: Icon(Icons.mic),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,

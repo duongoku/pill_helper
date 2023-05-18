@@ -1,16 +1,19 @@
 import 'medicine_name_screen.dart';
+import 'notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'time_screen.dart';
-
 
 class AddReminderScreen extends StatelessWidget {
   final LocalStorage storage = new LocalStorage('reminders.json');
   final FlutterTts tts = FlutterTts();
+  stt.SpeechToText speech = stt.SpeechToText();
   var pressed_1 = false;
   var pressed_2 = false;
   var pressed_3 = false;
+  var isListening = false;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +22,25 @@ class AddReminderScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Add New Reminder'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (isListening) {
+            speech.stop();
+            isListening = false;
+            return;
+          }
+          bool available = await speech.initialize();
+          if (available) {
+            isListening = true;
+            speech.listen(onResult: (result) {
+              print('Result: ${result.recognizedWords}');
+            });
+          } else {
+            print('The user has denied the use of speech recognition.');
+          }
+        },
+        child: Icon(Icons.mic),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -104,9 +126,16 @@ class AddReminderScreen extends StatelessWidget {
                     tts.speak('Save Reminder');
                   } else {
                     pressed_3 = false;
-                    reminders.add(Map<String, dynamic>.from(storage.getItem('currentReminder')));
+                    reminders.add(Map<String, dynamic>.from(
+                        storage.getItem('currentReminder')));
                     reminders.sort((a, b) => a['Time'].compareTo(b['Time']));
                     storage.setItem('reminders', reminders);
+                    NotificationService().showNotification(
+                      1,
+                      'Medicine Reminder',
+                      "Time to take your medicine: ${storage.getItem('currentReminder')['Medicine']}",
+                      storage.getItem('currentReminder')['Time'],
+                    );
                     Navigator.pop(context);
                   }
                 },

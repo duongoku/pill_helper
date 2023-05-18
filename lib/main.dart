@@ -118,8 +118,6 @@ class MedicationReminderScreen extends StatelessWidget {
                     await tts.awaitSpeakCompletion(true);
                     await tts.speak('View Existing Reminders');
                   } else {
-                    NotificationService()
-                        .showNotification(1, "TITLE", "DESCRIPTION");
                     pressed_2 = false;
                     Navigator.push(
                       context,

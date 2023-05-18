@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ViewRemindersScreen extends StatelessWidget {
   final LocalStorage storage = new LocalStorage('reminders.json');
+  stt.SpeechToText speech = stt.SpeechToText();
+  var isListening = false;
 
   ViewRemindersScreen();
 
@@ -14,6 +17,25 @@ class ViewRemindersScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('View Existing Reminders'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (isListening) {
+            speech.stop();
+            isListening = false;
+            return;
+          }
+          bool available = await speech.initialize();
+          if (available) {
+            isListening = true;
+            speech.listen(onResult: (result) {
+              print('Result: ${result.recognizedWords}');
+            });
+          } else {
+            print('The user has denied the use of speech recognition.');
+          }
+        },
+        child: Icon(Icons.mic),
       ),
       body: PageView.builder(
         itemCount: reminders.length ~/ 2 + reminders.length % 2,
@@ -93,6 +115,7 @@ class ReminderCard extends StatelessWidget {
                     reminders.remove(reminder);
                     storage.setItem('reminders', reminders);
                     pressed_1 = false;
+                    Navigator.pop(context);
                   }
                 },
                 child: Text(
