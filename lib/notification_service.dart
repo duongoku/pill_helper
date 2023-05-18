@@ -30,13 +30,14 @@ class NotificationService {
     int? hour = parts.isNotEmpty ? int.tryParse(parts[0]) : 0;
     int? minute = parts.length > 1 ? int.tryParse(parts[1]) : 0;
     var now = DateTime.now();
+    // Add 1 day
     var scheduledTime = DateTime(
       now.year,
       now.month,
       now.day,
       hour != null ? hour : 0,
       minute != null ? minute : 0,
-    );
+    ).add(const Duration(days: 1));
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
