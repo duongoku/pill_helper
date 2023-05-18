@@ -155,7 +155,7 @@ class AddReminderScreen extends StatelessWidget {
                     NotificationService().showNotification(
                       1,
                       'Medicine Reminder',
-                      "Time to take your medicine: ${storage.getItem('currentReminder')['Medicine']}",
+                      "Time to take your medicine: ${storage.getItem('currentReminder')['medicineName']}",
                       storage.getItem('currentReminder')['Time'],
                     );
                     Navigator.pop(context);
